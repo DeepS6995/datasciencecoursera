@@ -1,0 +1,49 @@
+---
+title: "Weight Lifting Exercise Dataset"
+output: html_document
+---
+
+Here a machine learning algorithm is developed with a training data consisting of 19622 entries and 160 variable.The purpose is to develop a model that identifies five different training styles. This models should be ultimately used to predict training styles of 20 test casses.
+
+The very first process is that the data is read in R
+
+```{r, reading data}
+train = read.csv("C:\\Users\\Deepak\\Documents\\Practical Machine Learning\\pml-training.csv")
+test = read.csv("C:\\Users\\Deepak\\Documents\\Practical Machine Learning\\pml-testing.csv")
+```
+
+Then they are cleaned. This is done in two steps. 
+First the variable with all NA were deleted, from both training and test data sets. I changed the names to train1 and test1. Then other variables  x,user_name, raw_timestamp_part_1, cvtd_timestamp, new_window variable are taken out becasue, they doen't help in prediction. 
+
+```{r, cleaning data}
+myvars <- colSums(is.na(test))<nrow(test)
+train1<- train[,myvars]
+test1<- test[,myvars]
+train1<- train1[c(-1,-2,-3,-4,-5,-6)]
+test1<- test1[c(-1,-2,-3,-4,-5,-6)]
+```
+
+Then prediction process is started. I used the random forest method to develop the model using the tainnning set (train1). However, because my computer could not take big data, I could run this model by taking maximum of 2000 observations.Even with this it took about 20 minutes to run my modFid command given below.
+
+
+```{r, developing the model}
+library(caret)
+set.seed(9850)
+g<- runif(nrow(train1))
+train1<- train1[order(g),]
+
+modFit <- train(classe~.,data=train1[1:2000,], method="rf", number=5, allowParallel=T)
+print(modFit$finalModel)
+
+```
+
+Here overall within the sample error was 3.8%. I used this to predict the test data as following.
+
+```{r, predicting with the model}
+pr2<-predict(modFit,newdata=test1)
+pr2
+
+```
+
+
+My prediction was 95% accurate- meaning out of 20, 19 predictions turned out to be correct. The error could be slightly higher than the insample but it is not significant. 
